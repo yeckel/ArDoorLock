@@ -1,5 +1,5 @@
 <?php
-$karta = $_GET["karta"];
+$karta = $_GET["cardnr"];
 
 switch ($karta){
         case "7A6AEFA2":

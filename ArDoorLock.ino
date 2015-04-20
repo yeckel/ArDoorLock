@@ -3,12 +3,11 @@
 #include <Ethernet.h>
 #include <TextFinder.h>
 
-#define RST_PIN		4		// 
-#define SS_PIN		3		//
-#define ETH_SPE         8
-#define LOCK_PIN        5
+#define RST_PIN		4		        // reset pin for RC522 (RST)
+#define RFID_SELECT_PIN		3		// select pin for RC522 (SDA)
+#define LOCK_PIN        5                       // door lock pin
 
-MFRC522 mfrc522(SS_PIN, RST_PIN);	// Create MFRC522 instance
+MFRC522 mfrc522(RFID_SELECT_PIN, RST_PIN);	// Create MFRC522 instance
 // assign a MAC address for the ethernet controller.
 // fill in your address here:
 byte mac[] = { 
@@ -25,7 +24,7 @@ IPAddress myDns(192,168,0,1);
 // initialize the library instance:
 EthernetClient client;
 
-char server[] = "78.108.108.102";
+char server[] = "tomsik.eu"; //change the server address to your server!!!
 unsigned long timeWhenDoorsOpened = 0;
 unsigned long howLongKeepDoorsOpen = 0;
 
@@ -34,7 +33,7 @@ unsigned long howLongKeepDoorsOpen = 0;
 void setup() {
   pinMode(10, OUTPUT); //ethetnet
   pinMode(ETH_SPE, OUTPUT); //ethetnet
-  pinMode(SS_PIN, OUTPUT);       
+  pinMode(RFID_SELECT_PIN, OUTPUT);       
   pinMode(LOCK_PIN, OUTPUT);       
 
   Serial.begin(9600);		// Initialize serial communications with the PC
@@ -126,14 +125,12 @@ void dump_byte_array(byte *buffer, byte bufferSize) {
 
 void selectEthernet(){        
   digitalWrite(10, LOW);
-  digitalWrite(ETH_SPE,HIGH);
-  digitalWrite(SS_PIN,HIGH);
+  digitalWrite(RFID_SELECT_PIN,HIGH);
   delay(10);
 }
 void selectRC522(){        
   digitalWrite(10, HIGH);
-  digitalWrite(ETH_SPE,LOW);
-  digitalWrite(SS_PIN,LOW);
+  digitalWrite(RFID_SELECT_PIN,LOW);
   delay(10);
 }
 
@@ -143,16 +140,16 @@ void httpRequest(byte *card_id, byte id_size) {
   if (client.connect(server, 80)) {
     Serial.println("connecting...");
     // send the HTTP PUT request:
-    client.print("GET /rfid.php?drzwi=1&karta=");
+    client.print(F("GET /rfid.php?door=1&cardnr="));
     for (byte i = 0; i < id_size; i++) {
       client.print(card_id[i] < 0x10 ? "0" : "");
       client.print(card_id[i], HEX);
     }
-    //client.println("GET /rfid.php?drzwi=1&karta=1 HTTP/1.1");
-    client.println(" HTTP/1.1");
-    client.println("Host: tomsik.eu");
-    client.println("User-Agent: arduino-ethernet");
-    client.println("Connection: close");
+
+    client.println(F(" HTTP/1.1"));
+    client.println(F("Host: tomsik.eu"));
+    client.println(F("User-Agent: arduino-ethernet"));
+    client.println(F("Connection: close"));
     client.println();
   } 
   else {
